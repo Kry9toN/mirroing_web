@@ -152,10 +152,21 @@
 
                 <!-- Mobile Menu Button -->
                 <div class="md:hidden flex items-center">
-                    <button class="text-gray-300 hover:text-white focus:outline-none">
+                    <button id="mobile-menu-btn" class="text-gray-300 hover:text-white focus:outline-none transition-colors">
                         <i class="fas fa-bars text-2xl"></i>
                     </button>
                 </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Dropdown -->
+        <div id="mobile-menu" class="hidden md:hidden glass border-t border-white/10 absolute w-full shadow-2xl bg-c77-dark/95 backdrop-blur-xl">
+            <div class="px-4 pt-2 pb-6 space-y-2 flex flex-col">
+                <a href="#fitur" class="text-gray-300 hover:text-c77-primary hover:bg-white/5 block px-3 py-3 rounded-lg text-base font-medium transition-colors">Fitur</a>
+                <a href="#demo" class="text-gray-300 hover:text-c77-primary hover:bg-white/5 block px-3 py-3 rounded-lg text-base font-medium transition-colors">Preview</a>
+                <a href="https://fileshare.kryptonproject.my.id/u/C77-Mirror_1.0.9.zip" class="bg-c77-primary hover:bg-c77-primaryHover text-c77-dark block px-3 py-3 mt-4 rounded-lg text-base font-bold text-center transition-all shadow-[0_0_15px_rgba(0,230,118,0.3)]">
+                    <i class="fas fa-download mr-2"></i> Download
+                </a>
             </div>
         </div>
     </nav>
@@ -413,15 +424,46 @@
                 </div>
                 
                 <!-- Badge Versi & Tombol Atas -->
-                <div class="flex items-center gap-3">
-                    <span class="bg-c77-primary/10 text-c77-primary px-2 py-1 rounded border border-c77-primary/20">Build v1.0.9</span>
-                    <a href="#" class="w-8 h-8 rounded-lg bg-white/5 hover:bg-c77-primary hover:text-c77-dark flex items-center justify-center transition-all duration-300 shadow-lg">
-                        <i class="fas fa-chevron-up"></i>
-                    </a>
-                </div>
+            <div class="flex items-center gap-3">
+                <span class="bg-c77-primary/10 text-c77-primary px-2 py-1 rounded border border-c77-primary/20">Build v1.0.9</span>
+                <a href="#" class="w-8 h-8 rounded-lg bg-white/5 hover:bg-c77-primary hover:text-c77-dark flex items-center justify-center transition-all duration-300 shadow-lg">
+                    <i class="fas fa-chevron-up"></i>
+                </a>
             </div>
         </div>
-    </footer>
+    </div>
+</footer>
+
+<!-- Scripts -->
+<script>
+    // Toggle Mobile Menu
+    const mobileBtn = document.getElementById('mobile-menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const menuIcon = mobileBtn.querySelector('i');
+
+    mobileBtn.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+        
+        // Ganti icon bars menjadi 'X' saat dibuka
+        if(mobileMenu.classList.contains('hidden')) {
+            menuIcon.classList.remove('fa-times');
+            menuIcon.classList.add('fa-bars');
+        } else {
+            menuIcon.classList.remove('fa-bars');
+            menuIcon.classList.add('fa-times');
+        }
+    });
+
+    // Tutup menu otomatis saat link diklik (UX yang baik)
+    const mobileLinks = mobileMenu.querySelectorAll('a');
+    mobileLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            mobileMenu.classList.add('hidden');
+            menuIcon.classList.remove('fa-times');
+            menuIcon.classList.add('fa-bars');
+        });
+    });
+</script>
 
 </body>
 </html>
