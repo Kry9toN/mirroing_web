@@ -694,7 +694,17 @@ shadow-[0_0_15px_rgba(0,230,118,0.3)] group-hover:shadow-[0_0_25px_rgba(0,230,11
             const footerBuild = document.getElementById('footer-build');
             if (footerBuild) footerBuild.textContent = `Build ${version}`;
 
-            // Primary download button                                                                                                                                                                   
+            function trackDownload(payload) {
+                try {
+                    if (typeof window.op === 'function') {
+                        window.op('track', 'download', payload);
+                    }
+                } catch (e) {
+                    // fail silent — jangan ganggu UX kalau analytics error
+                }
+            }
+
+            // Primary download button
             const primaryEl = document.getElementById('download-primary');
             const primaryIcon = document.getElementById('download-primary-icon');
             const primaryTitle = document.getElementById('download-primary-title');
@@ -704,9 +714,30 @@ shadow-[0_0_15px_rgba(0,230,118,0.3)] group-hover:shadow-[0_0_25px_rgba(0,230,11
                 primaryIcon.className = `${primary.icon} text-2xl group-hover:animate-bounce`;
                 primaryTitle.textContent = `Download untuk ${primary.label}`;
                 primarySubtitle.textContent = `${version} · ${formatBytes(primary.size)} · Gratis & Aman`;
+                primaryEl.addEventListener('click', () => {
+                    trackDownload({
+                        version: versionClean,
+                        platform: userOS,
+                        platform_label: primary.label,
+                        asset_name: primary.name,
+                        asset_size: primary.size,
+                        source: 'primary',
+                        detected_os: userOS,
+                    });
+                });
             } else {
-                // Tidak ada asset cocok — fallback ke release page                                                                                                                                      
-                if (primaryEl) primaryEl.href = release.html_url;
+                // Tidak ada asset cocok — fallback ke release page
+                if (primaryEl) {
+                    primaryEl.href = release.html_url;
+                    primaryEl.addEventListener('click', () => {
+                        trackDownload({
+                            version: versionClean,
+                            platform: 'github_release_page',
+                            source: 'primary_fallback',
+                            detected_os: userOS,
+                        });
+                    });
+                }
                 if (primaryTitle) primaryTitle.textContent = 'Lihat Release di GitHub';
                 if (primarySubtitle) primarySubtitle.textContent = version;
             }
@@ -721,20 +752,37 @@ shadow-[0_0_15px_rgba(0,230,118,0.3)] group-hover:shadow-[0_0_25px_rgba(0,230,11
                 const p = platforms[id];
                 if (!p) return;
                 if (id === userOS) return;
-                if (seen.has(p.url)) return; // hindari duplikat (mis. macos-arm == macos universal)                                                                                                     
+                if (seen.has(p.url)) return; // hindari duplikat (mis. macos-arm == macos universal)
                 seen.add(p.url);
-                others.push(p);
+                others.push({...p, id});
             });
             if (others.length && otherList && otherWrap) {
-                otherList.innerHTML = others.map(p => `                                                                                                                                                  
-                    <a href="${p.url}" class="glass hover:bg-white/5 hover:border-c77-primary/50 text-white border border-white/10 px-4 py-2 rounded-lg text-sm font-medium transition-all flex          
-items-center gap-2">                                                                                                                                                                                     
-                        <i class="${p.icon} text-c77-primary"></i>                                                                                                                                       
-                        ${p.label}                                                                                                                                                                       
-                        <span class="text-gray-500 text-xs">${formatBytes(p.size)}</span>                                                                                                                
+                otherList.innerHTML = others.map((p, idx) => `
+                    <a href="${p.url}" data-platform-idx="${idx}" class="glass hover:bg-white/5 hover:border-c77-primary/50 text-white border border-white/10 px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2">
+                        <i class="${p.icon} text-c77-primary"></i>
+                        ${p.label}
+                        <span class="text-gray-500 text-xs">${formatBytes(p.size)}</span>
                     </a>
                 `).join('');
                 otherWrap.classList.remove('hidden');
+
+                // Attach tracker ke tiap link platform lain
+                otherList.querySelectorAll('a[data-platform-idx]').forEach(link => {
+                    const idx = Number(link.getAttribute('data-platform-idx'));
+                    const p = others[idx];
+                    if (!p) return;
+                    link.addEventListener('click', () => {
+                        trackDownload({
+                            version: versionClean,
+                            platform: p.id || p.label,
+                            platform_label: p.label,
+                            asset_name: p.name,
+                            asset_size: p.size,
+                            source: 'alternate',
+                            detected_os: userOS,
+                        });
+                    });
+                });
             }
 
             // Download info line                                                                                                                                                                        
